@@ -22,6 +22,7 @@ import { useState } from "react";
 import { EyeIcon, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { WEBSITE_LOGIN, WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
+import axios from "axios";
 
 const Registerpage = () => {
   const [loginLoading, setLoginLoading] = useState(false);
@@ -51,8 +52,22 @@ const Registerpage = () => {
     },
   });
 
-  const handleRegisterSubmit = async (value) => {
-    console.log("Register submitted:", value);
+  const handleRegisterSubmit = async (values) => {
+    try {
+      setLoginLoading(true);
+      const { data } = await axios.post("/api/auth/register", values);
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+      form.reset();
+      alert(data.message);
+    } catch (error) {
+      alert(error.message);
+      console.error("Register Error:", error);
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   return (
@@ -148,19 +163,6 @@ const Registerpage = () => {
                           className="bg-white pr-10"
                         />
                       </FormControl>
-                      {/* <div className="absolute top-[35px] right-4">
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="cursor-pointer"
-                        >
-                          {showPassword ? (
-                            <EyeIcon className="text-2xl text-[#FE6800]" />
-                          ) : (
-                            <EyeOff className="text-[20px] text-[#FE6800]" />
-                          )}
-                        </button>
-                      </div> */}
                       <FormMessage />
                     </FormItem>
                   )}
