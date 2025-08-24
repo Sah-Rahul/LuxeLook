@@ -22,10 +22,15 @@ import { useState } from "react";
 import { EyeIcon, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
+import { showToast } from "@/lib/showToast";
+import axios from "axios";
+import OtpVerification from "@/components/Shared/OtpVerification";
 
 const Loginpage = () => {
   const [loginLoading, setLoginLoading] = useState(false);
+  const [otpVerificationLoading, setOtpVerificationLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [EmailOpt, setEmailOpt] = useState();
   const formSchema = zodSchema
     .pick({
       email: true,
@@ -42,8 +47,41 @@ const Loginpage = () => {
     },
   });
 
-  const handleLoginSubmit = async (value) => {
-    console.log("Login submitted:", value);
+  const handleLoginSubmit = async (values) => {
+    try {
+      setLoginLoading(true);
+      const { data } = await axios.post("/api/auth/login", values);
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+      setEmailOpt(values.email);
+      form.reset();
+      showToast("success", data.message);
+    } catch (error) {
+      showToast("error", error.message);
+      console.error("Register Error:", error);
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  // otp verification 
+  const otpSubmitHandle = async (values) => {
+    try {
+      setOtpVerificationLoading(true);
+      const { data } = await axios.post("/api/auth/verify-otp", values);
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+      setEmailOpt("");
+      showToast("success", data.message);
+    } catch (error) {
+      showToast("error", error.message);
+    } finally {
+      setOtpVerificationLoading(false);
+    }
   };
 
   return (
@@ -60,107 +98,119 @@ const Loginpage = () => {
             />
           </div>
 
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-[#FE6800]">
-              Login Into Account
-            </h1>
-            <p className="text-sm text-gray-700">
-              Login into your account by filling out the form below.
-            </p>
-          </div>
+          {!EmailOpt ? (
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-3xl font-bold text-[#FE6800]">
+                  Login Into Account
+                </h1>
+                <p className="text-sm text-gray-700">
+                  Login into your account by filling out the form below.
+                </p>
+              </div>
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleLoginSubmit)}
-              className="space-y-5"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize text-sm text-gray-700">
-                      Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="quickkart@gmail.com"
-                        {...field}
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleLoginSubmit)}
+                  className="space-y-5"
+                >
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="capitalize text-sm text-gray-700">
+                          Email
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="quickkart@gmail.com"
+                            {...field}
+                            className="bg-white"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="relative">
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm text-gray-700">
+                            Password
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="********"
+                              {...field}
+                              className="bg-white pr-10"
+                            />
+                          </FormControl>
+                          {/* hide and show password  */}
+                          <div className="absolute top-[35px]  right-4 ">
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="cursor-pointer "
+                            >
+                              {showPassword ? (
+                                <EyeIcon className="text-2xl text-[#FE6800]" />
+                              ) : (
+                                <EyeOff className="text-[20px] text-[#FE6800]" />
+                              )}
+                            </button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <ButtonLoading
+                      text="Login"
+                      className="w-full cursor-pointer"
+                      type="submit"
+                      loading={loginLoading}
+                    />
+                  </div>
+                  <div className="mt-4 text-center text-sm">
+                    <p>
+                      Don't have an account?{" "}
+                      <Link
+                        href={WEBSITE_REGISTER}
+                        className="font-medium text-primary underline hover:text-primary/80"
+                      >
+                        Create account!
+                      </Link>
+                    </p>
+                    <p className="mt-2">
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-sm font-medium text-primary underline hover:text-primary/80"
+                      >
+                        Forgot password?
+                      </Link>
+                    </p>
+                  </div>
+                </form>
+              </Form>
+            </>
+          ) : (
+            <>
+              <OtpVerification
+                email={EmailOpt}
+                onsubmit={otpSubmitHandle}
+                loading={otpVerificationLoading}
               />
-
-              <div className="relative">
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm text-gray-700">
-                        Password
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="********"
-                          {...field}
-                          className="bg-white pr-10"
-                        />
-                      </FormControl>
-                      {/* hide and show password  */}
-                      <div className="absolute top-[35px]  right-4 ">
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="cursor-pointer "
-                        >
-                          {showPassword ? (
-                            <EyeIcon className="text-2xl text-[#FE6800]" />
-                          ) : (
-                            <EyeOff className="text-[20px] text-[#FE6800]" />
-                          )}
-                        </button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div>
-                <ButtonLoading
-                  text="Login"
-                  className="w-full cursor-pointer"
-                  type="submit"
-                  loading={loginLoading}
-                />
-              </div>
-              <div className="mt-4 text-center text-sm">
-                <p>
-                  Don't have an account?{" "}
-                  <Link
-                    href={WEBSITE_REGISTER}
-                    className="font-medium text-primary underline hover:text-primary/80"
-                  >
-                    Create account!
-                  </Link>
-                </p>
-                <p className="mt-2">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-sm font-medium text-primary underline hover:text-primary/80"
-                  >
-                    Forgot password?
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </Form>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

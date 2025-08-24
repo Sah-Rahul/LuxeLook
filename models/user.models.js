@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { catchError } from "@/lib/helperFunction";
 
 const userSchema = new mongoose.Schema(
   {
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      select: false, // prevent password from being returned by default
+      select: false,  
     },
     avatar: {
       url: {
@@ -64,7 +65,7 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
     next();
   } catch (err) {
-    next(err);
+    catchError(err);
   }
 });
 

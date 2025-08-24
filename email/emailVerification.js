@@ -279,11 +279,10 @@ export const emailVerificationLink = (link) => {
                 <div class="social-links">
                     <a href="#" class="social-link">Instagram</a>
                     <a href="#" class="social-link">TikTok</a>
-                    <a href="https://www.youtube.com/@developergoswami" class="social-link">YouTube</a>
                 </div>
                 
                 <p class="copyright">
-                    © 2024 StyleHub. All rights reserved.<br>
+                    © ${new Date().getFullYear()} StyleHub. All rights reserved.<br>
                     Crafted with passion for fashion lovers worldwide.
                 </p>
             </div>

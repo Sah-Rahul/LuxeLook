@@ -23,6 +23,7 @@ import { EyeIcon, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { WEBSITE_LOGIN, WEBSITE_REGISTER } from "@/routes/WebsiteRoutes";
 import axios from "axios";
+import { showToast } from "@/lib/showToast";
 
 const Registerpage = () => {
   const [loginLoading, setLoginLoading] = useState(false);
@@ -61,9 +62,9 @@ const Registerpage = () => {
         throw new Error(data.message);
       }
       form.reset();
-      alert(data.message);
+      showToast("success", data.message);
     } catch (error) {
-      alert(error.message);
+      showToast("error", error.message);
       console.error("Register Error:", error);
     } finally {
       setLoginLoading(false);

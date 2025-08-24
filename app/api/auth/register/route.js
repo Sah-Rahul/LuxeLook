@@ -47,7 +47,7 @@ export async function POST(req) {
 
     // Create JWT token - FIXED: Remove await from TextEncoder and fix variable name
     const secret = new TextEncoder().encode(process.env.SECRET_KEY);
-    const token = await new SignJWT({ userId: newUser._id })
+    const token = await new SignJWT({ userId: newUser._id.toString() })
       .setIssuedAt()
       .setProtectedHeader({ alg: "HS256" })
       .setExpirationTime("1h")
@@ -58,7 +58,7 @@ export async function POST(req) {
       "Email Verification request from Rahul Sah",
       email,
       emailVerificationLink(`
-        ${process.env.NEXT_PUBLIC_BASE_URL}/verifyEmail/${token}`
+        ${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email/${token}`
         
       )
     );
